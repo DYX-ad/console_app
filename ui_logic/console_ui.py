@@ -22,7 +22,7 @@ class ConsoleDbApp:
         self.orm_data_provider = orm_data_provider
 
     def start_app(self):
-        choose = input('Choose data provider for initialization: 1 - raw, 2 - orm')
+        choose = input('Choose data provider for initialization: 1 - raw, 2 - orm: ')
         self.data_provider = self.raw_data_provider if choose == '1' else self.orm_data_provider
 
         print('Starting Console Db App ...')
