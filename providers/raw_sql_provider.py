@@ -3,19 +3,20 @@ import psycopg2
 from config import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME
 from db_logic.raw_sql_queries import CREATE_TABLE_QUERIES, INSERT_AUTHOR, INSERT_BOOK, INSERT_GENRE, INSERT_BOOK_GENRE, \
     SELECT_BOOKS_BY_GENRE, SELECT_BOOKS_BY_AUTHOR_AND_YEAR, SELECT_GENRES_WITH_BOOK_COUNT
+from providers.data_provider_interface import DataProvider
 
 SERVER_URI = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/postgres'
 DATABASE_URI = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
 
 
-class RawSqlProvider:
-    _connection = None
+class RawSqlProvider(DataProvider):
+    connection = None
 
     @classmethod
     def get_connection(cls):
-        if cls._connection is None or cls._connection.closed:
-            cls._connection = psycopg2.connect(DATABASE_URI)
-        return cls._connection
+        if cls.connection is None or cls.connection.closed:
+            cls.connection = psycopg2.connect(DATABASE_URI)
+        return cls.connection
 
     @staticmethod
     def create_database_if_not_exist():
@@ -73,11 +74,9 @@ class RawSqlProvider:
             with conn.cursor() as cur:
                 cur.execute(SELECT_BOOKS_BY_GENRE, (f"%{genre_name}%",))
                 books = cur.fetchall()
-                if books:
-                    for book in books:
-                        print(f"Book Title: {book[0]}")
-                else:
-                    print("No books found for this genre.")
+                return books
+
+
 
     @staticmethod
     def get_books_by_author_and_year(author_name):
@@ -85,11 +84,7 @@ class RawSqlProvider:
             with conn.cursor() as cur:
                 cur.execute(SELECT_BOOKS_BY_AUTHOR_AND_YEAR, (f"%{author_name}%",))
                 books = cur.fetchall()
-                if books:
-                    for title, year in books:
-                        print(f"{title} ({year})")
-                else:
-                    print("No books found for this author.")
+                return books
 
     @staticmethod
     def get_genre_count():
@@ -97,5 +92,4 @@ class RawSqlProvider:
             with conn.cursor() as cur:
                 cur.execute(SELECT_GENRES_WITH_BOOK_COUNT)
                 results = cur.fetchall()
-                for genre, count in results:
-                    print(f"Genre: {genre}, Number of books: {count}")
+                return results
